@@ -8,17 +8,24 @@ from perceptron import PerceptronRosenblatt
 #==================
 # Parameters
 #==================
-NUMBER_OF_EPOCHS = 1000
-NUMBER_OF_TRAIN_SAMPLES = 250
-NUMBER_OF_VALIDATION_SAMPLES = 10000
-LEARNING_RATE = 0.01
+NUMBER_OF_EPOCHS = 5000
+NUMBER_OF_TRAIN_SAMPLES = 1000
+NUMBER_OF_VALIDATION_SAMPLES = 1000
+LEARNING_RATE = 0.02
+SUCCES_CRITERIA = 0.95
 PLOT_SAMPLES = True
+
+WEIGHT_NORMALIZER = 80
+HEIGHT_NORMALIZER = 1.8
 
 TOTAL_SAMPLES = NUMBER_OF_TRAIN_SAMPLES + NUMBER_OF_VALIDATION_SAMPLES
 
 #==================
 # Generate samples
 #==================
+
+MIN_WEIGHT = None
+MAX_WEIGHT = None
 persons:list[Person] = []
 for i in range(TOTAL_SAMPLES):
     gender = random.choice(["female","male"])
@@ -28,10 +35,17 @@ formatted_samples:list[list] = []
 
 for person in persons:
     weight = person.get_weight()
+    normalized_weight = weight / WEIGHT_NORMALIZER
     height = person.get_height()
+    normalized_height = height / HEIGHT_NORMALIZER
     gender = 1 if person.get_gender() == "female" else -1
 
-    formatted_samples.append([weight, height, gender])
+    if MIN_WEIGHT == None or weight < MIN_WEIGHT:
+        MIN_WEIGHT = weight
+    if MAX_WEIGHT == None or weight > MAX_WEIGHT:
+        MAX_WEIGHT = weight
+        
+    formatted_samples.append([normalized_weight, normalized_height, gender])
 
 #==================
 # Train on samples
@@ -64,6 +78,9 @@ for epoch in range(NUMBER_OF_EPOCHS):
     print(f"Number of failures: {number_of_failure}")
     print(f"Success rate: {number_of_successes/(number_of_successes+number_of_failure)}")
 
+    if number_of_successes/(number_of_successes+number_of_failure) > SUCCES_CRITERIA:
+        print(f"Success rate reached the success criteria of {SUCCES_CRITERIA}")
+        break
 
 #==================
 # Validate result
@@ -81,6 +98,12 @@ if PLOT_SAMPLES:
     plt.scatter(male_weights, male_heights , color='blue', label='Male')
     plt.scatter(female_weights, female_heights, color='pink', label='Female')
 
+    x = np.linspace(MIN_WEIGHT/WEIGHT_NORMALIZER, MAX_WEIGHT/WEIGHT_NORMALIZER, 100)
+    y = []
+    for item in x:
+        y.append(perceptron.seperation_line_function_for_2_input(item))
+  
+    plt.plot(x, y, color='black', label='Perceptron')
     # Labeling axes
     plt.xlabel('Weight (kg)')
     plt.ylabel('Height (cm)')

@@ -26,8 +26,8 @@ class Person():
         - A height sampled from the corresponding Gaussian distribution.
         """
 
-        mu = 150 if gender=="female" else 180
-        sigma = 3 if gender=="female" else 3
+        mu = 150 if gender=="female" else 178.4
+        sigma = 5 if gender=="female" else 7.6
 
         # Sample a single value from the Gaussian distribution
         return np.random.normal(mu, sigma)
