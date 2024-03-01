@@ -1,0 +1,3 @@
+1) when the given data is in fact linearly seperable, the Rosenblatt seems to converge only in one epoch
+2) as the data is not seperated linearly, the Rosenblatt oscilates incredibly from epoch to epoch (%95 succes drops to %50 in only one epoch)
+3) when the input data is normalized (height is divided by 1.8 and weight is divided by 80, the converge is way faster than when it is not normalized)

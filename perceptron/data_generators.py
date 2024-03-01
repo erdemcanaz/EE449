@@ -27,7 +27,7 @@ class Person():
         """
 
         mu = 150 if gender=="female" else 178.4
-        sigma = 5 if gender=="female" else 7.6
+        sigma = 5 if gender=="female" else 5
 
         # Sample a single value from the Gaussian distribution
         return np.random.normal(mu, sigma)

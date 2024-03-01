@@ -8,11 +8,12 @@ from perceptron import PerceptronRosenblatt
 #==================
 # Parameters
 #==================
-NUMBER_OF_EPOCHS = 5000
+NUMBER_OF_EPOCHS_BEFORE_REDUCING_SUCCES_CRITERIA = 50
 NUMBER_OF_TRAIN_SAMPLES = 1000
 NUMBER_OF_VALIDATION_SAMPLES = 1000
-LEARNING_RATE = 0.02
-SUCCES_CRITERIA = 0.95
+LEARNING_RATE = 0.001
+SUCCES_CRITERIA = 1.0
+SUCCES_CRITERIA_STEP = 0.01
 PLOT_SAMPLES = True
 
 WEIGHT_NORMALIZER = 80
@@ -53,35 +54,41 @@ for person in persons:
 perceptron = PerceptronRosenblatt(number_of_inputs=2)
 perceptron.update_learning_rate(LEARNING_RATE)
 
-for epoch in range(NUMBER_OF_EPOCHS):
-    print(f"\nEpoch: {epoch}")
-    for formatted_sample in formatted_samples[0:NUMBER_OF_TRAIN_SAMPLES]:
-        u = np.array( [[formatted_sample[0]], [formatted_sample[1]], [1]] )
-        y = formatted_sample[2]
-        perceptron.train_for_single_sample( u, y)
+while SUCCES_CRITERIA>0:
+    is_criteria_satisfied = False
+    for epoch in range(NUMBER_OF_EPOCHS_BEFORE_REDUCING_SUCCES_CRITERIA):
+        print(f"\nEpoch: {epoch} Succes Criteria: {SUCCES_CRITERIA}")
+        for formatted_sample in formatted_samples[0:NUMBER_OF_TRAIN_SAMPLES]:
+            u = np.array( [[formatted_sample[0]], [formatted_sample[1]], [1]] )
+            y = formatted_sample[2]
+            perceptron.train_for_single_sample( u, y)
 
-    #Verbose part
-    perceptron.print_hyperplane_function()
+        #Verbose part
+        perceptron.print_hyperplane_function()
+        
+        number_of_successes = 0
+        number_of_failure = 0
+        for formatted_sample in formatted_samples[NUMBER_OF_TRAIN_SAMPLES:]:
+            u = np.array( [[formatted_sample[0]], [formatted_sample[1]], [1]] )
+            y = formatted_sample[2]
+            x = perceptron.calculate_output(u)
+            if y != x:
+                number_of_failure += 1
+            else:
+                number_of_successes += 1
+
+        print(f"Number of successes: {number_of_successes}")
+        print(f"Number of failures: {number_of_failure}")
+        print(f"Success rate: {number_of_successes/(number_of_successes+number_of_failure)}")
+
+        if number_of_successes/(number_of_successes+number_of_failure) > SUCCES_CRITERIA:
+            print(f"Success rate reached the success criteria of {SUCCES_CRITERIA}")
+            is_criteria_satisfied = True
+            break
     
-    number_of_successes = 0
-    number_of_failure = 0
-    for formatted_sample in formatted_samples[NUMBER_OF_TRAIN_SAMPLES+1:]:
-        u = np.array( [[formatted_sample[0]], [formatted_sample[1]], [1]] )
-        y = formatted_sample[2]
-        x = perceptron.calculate_output(u)
-        if y != x:
-            number_of_failure += 1
-        else:
-            number_of_successes += 1
-
-    print(f"Number of successes: {number_of_successes}")
-    print(f"Number of failures: {number_of_failure}")
-    print(f"Success rate: {number_of_successes/(number_of_successes+number_of_failure)}")
-
-    if number_of_successes/(number_of_successes+number_of_failure) > SUCCES_CRITERIA:
-        print(f"Success rate reached the success criteria of {SUCCES_CRITERIA}")
+    SUCCES_CRITERIA -= SUCCES_CRITERIA_STEP
+    if is_criteria_satisfied:
         break
-
 #==================
 # Validate result
 #==================
@@ -105,8 +112,8 @@ if PLOT_SAMPLES:
   
     plt.plot(x, y, color='black', label='Perceptron')
     # Labeling axes
-    plt.xlabel('Weight (kg)')
-    plt.ylabel('Height (cm)')
+    plt.xlabel('Weight (kg if not normalized)')
+    plt.ylabel('Height (cm if not normalized)')
 
     # Adding a legend
     plt.legend()
